@@ -239,7 +239,6 @@ const WEEK_MOD = {
 };
 
 function adjustExercise(ex, week){
-  if(ex.note || DAY_TEMPLATES_isRecovery) {} // placeholder, gestito sotto
   const mod = WEEK_MOD[week];
   const copy = {...ex};
   if(!ex.note){
