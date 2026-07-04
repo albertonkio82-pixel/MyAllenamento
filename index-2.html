@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1B1F1D">
+<title>MyAllenamento</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F0;
+  --panel:#FFFFFF;
+  --ink:#1B1F1D;
+  --ink-soft:#5B6058;
+  --line:#DEDFD9;
+  --accent:#FF5A36;
+  --accent-ink:#FFF2EC;
+  --rest:#2F6F4E;
+  --rest-ink:#EAF5EE;
+  --radius:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;padding-bottom:90px;}
+h1,h2,h3,.num{font-family:'Space Grotesk',sans-serif;}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px;}
+
+/* HEADER */
+header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+header.top h1{font-size:22px;margin:0;letter-spacing:-0.02em;}
+header.top h1 span{color:var(--accent);}
+.streak{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);font-weight:600;}
+.streak b{color:var(--accent);font-size:16px;}
+
+/* WEEK SELECTOR */
+.week-tabs{display:flex;gap:8px;margin-bottom:18px;}
+.week-tab{flex:1;text-align:center;padding:10px 0;border-radius:999px;border:1.5px solid var(--line);background:var(--panel);font-weight:700;font-size:13px;cursor:pointer;color:var(--ink-soft);}
+.week-tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+/* DAY DIAL */
+.days{display:flex;justify-content:space-between;margin-bottom:22px;}
+.day-btn{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;cursor:pointer;font-family:inherit;}
+.day-btn .dot{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--ink-soft);position:relative;}
+.day-btn.workout .dot{border-color:var(--accent);color:var(--accent);}
+.day-btn.recovery .dot{border-color:var(--rest);color:var(--rest);}
+.day-btn.today .dot{box-shadow:0 0 0 3px rgba(255,90,54,0.18);}
+.day-btn.done .dot{background:var(--ink);border-color:var(--ink);color:#fff;}
+.day-btn.selected .dot{transform:scale(1.12);}
+.day-btn small{font-size:11px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;}
+
+/* WORKOUT CARD */
+.card{background:var(--panel);border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid var(--line);}
+.card.recovery{border-color:var(--rest);}
+.wk-title{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.wk-title h2{font-size:19px;margin:0;}
+.badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+.badge.workout{background:var(--accent-ink);color:var(--accent);}
+.badge.recovery{background:var(--rest-ink);color:var(--rest);}
+.wk-sub{color:var(--ink-soft);font-size:13px;margin:0 0 14px;}
+
+.session-timer{text-align:center;margin:10px 0 16px;}
+.session-timer .num{font-size:40px;font-weight:700;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;}
+.session-timer .lbl{font-size:12px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em;}
+
+.actions{display:flex;gap:10px;margin-bottom:16px;}
+.btn{flex:1;padding:13px 0;border-radius:999px;border:none;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;}
+.btn-start{background:var(--accent);color:#fff;}
+.btn-end{background:var(--ink);color:#fff;}
+.btn-ghost{background:none;border:1.5px solid var(--line);color:var(--ink);}
+.btn:disabled{opacity:.4;}
+
+.ex-list{display:flex;flex-direction:column;gap:10px;}
+.ex{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;}
+.ex.done{opacity:.5;}
+.ex.done .ex-name{text-decoration:line-through;}
+.check{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;}
+.check.on{background:var(--accent);border-color:var(--accent);}
+.ex-body{flex:1;}
+.ex-name{font-weight:600;font-size:14px;}
+.ex-meta{font-size:12.5px;color:var(--ink-soft);margin-top:2px;}
+.ex-timer-btn{border:none;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;flex:none;}
+
+/* TIMER OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(27,31,29,.92);display:none;align-items:center;justify-content:center;z-index:50;flex-direction:column;color:#fff;}
+.overlay.show{display:flex;}
+.ring-wrap{position:relative;width:220px;height:220px;margin-bottom:18px;}
+.ring-wrap svg{transform:rotate(-90deg);}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.15);stroke-width:10;}
+.ring-fg{fill:none;stroke:var(--accent);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .2s linear;}
+.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;font-family:'Space Grotesk',sans-serif;}
+.overlay h3{margin:0 0 4px;font-size:16px;font-weight:600;}
+.overlay .sub{color:#bbb;font-size:13px;margin-bottom:22px;}
+.metro-row{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+.metro-dot{width:14px;height:14px;border-radius:50%;background:#555;}
+.metro-dot.on{background:var(--accent);}
+.metro-row select{background:#2a2f2c;color:#fff;border:none;border-radius:8px;padding:6px 10px;font-family:inherit;font-size:13px;}
+.overlay-actions{display:flex;gap:10px;}
+.overlay .btn{padding:12px 22px;}
+
+/* SETTINGS */
+.settings-toggle{width:100%;text-align:left;background:none;border:none;color:var(--ink-soft);font-weight:600;font-size:13px;padding:10px 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+.settings{display:none;}
+.settings.open{display:block;}
+.field{margin-bottom:12px;}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;}
+.field input[type=text]{width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--line);font-family:inherit;font-size:13.5px;}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.switch{width:42px;height:24px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;}
+.switch.on{background:var(--accent);}
+.switch .knob{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:3px;transition:.2s;}
+.switch.on .knob{left:21px;}
+.note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin-top:8px;}
+.spotify-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:12px;background:#1DB954;color:#fff;font-weight:700;font-size:13.5px;border:none;cursor:pointer;margin-top:6px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>My<span>Allenamento</span></h1>
+    <div class="streak">🔥 <b id="streakNum">0</b> streak</div>
+  </header>
+
+  <div class="week-tabs" id="weekTabs"></div>
+  <div class="days" id="dayDial"></div>
+
+  <div id="cardHost"></div>
+
+  <button class="settings-toggle" id="settingsToggle">Impostazioni &amp; Spotify <span id="settingsArrow">▾</span></button>
+  <div class="settings" id="settingsPanel">
+    <div class="toggle-row">
+      Notifiche allenamento (feriali 19:00 · weekend 11:00)
+      <div class="switch" id="notifSwitch"><div class="knob"></div></div>
+    </div>
+    <p class="note">Le notifiche funzionano mentre l'app è aperta in un tab/PWA. Su iOS il browser può sospenderle se l'app resta chiusa a lungo: se vuoi una sveglia sempre affidabile, dimmelo e ti creo anche un promemoria fisso sul calendario.</p>
+    <div class="field" style="margin-top:14px;">
+      <label>Link playlist Spotify</label>
+      <input type="text" id="spotifyLink" placeholder="https://open.spotify.com/playlist/...">
+    </div>
+    <button class="spotify-btn" id="spotifyBtn">▶ Apri playlist in Spotify</button>
+    <div class="field" style="margin-top:14px;">
+      <label>BPM metronomo di default</label>
+      <input type="text" id="bpmDefault" value="80">
+    </div>
+  </div>
+</div>
+
+<!-- TIMER OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="ring-wrap">
+    <svg width="220" height="220">
+      <circle class="ring-bg" cx="110" cy="110" r="96"></circle>
+      <circle class="ring-fg" id="ringFg" cx="110" cy="110" r="96" stroke-dasharray="603" stroke-dashoffset="0"></circle>
+    </svg>
+    <div class="ring-num" id="ringNum">30</div>
+  </div>
+  <h3 id="ovName">Esercizio</h3>
+  <div class="sub" id="ovMeta">3 x 10</div>
+  <div class="metro-row">
+    <div class="metro-dot" id="metroDot"></div>
+    <span style="font-size:13px;">Metronomo</span>
+    <select id="bpmSelect">
+      <option value="0">Off</option>
+      <option value="60">60</option>
+      <option value="80" selected>80</option>
+      <option value="100">100</option>
+      <option value="120">120</option>
+    </select>
+  </div>
+  <div class="overlay-actions">
+    <button class="btn btn-ghost" id="ovClose" style="color:#fff;border-color:#555;">Chiudi</button>
+    <button class="btn btn-start" id="ovStart">Avvia</button>
+  </div>
+</div>
+
+<script>
+/* ================= DATI PROGRAMMA ================= */
+const DAY_TEMPLATES = {
+  push: {title:"Spinta — Petto · Spalle · Tricipiti", type:"workout", ex:[
+    {name:"Riscaldamento", meta:"2 min", time:120, note:true},
+    {name:"Flessioni sugli appoggi", sets:3, reps:8, rest:45},
+    {name:"Shoulder press con manubri", sets:3, reps:10, rest:45},
+    {name:"Dip su sedia", sets:2, reps:8, rest:45},
+    {name:"Plank", sets:3, time:20, rest:30},
+  ]},
+  legs: {title:"Gambe — Squat · Affondi · Glutei", type:"workout", ex:[
+    {name:"Riscaldamento", meta:"2 min", time:120, note:true},
+    {name:"Squat con manubri", sets:3, reps:12, rest:40},
+    {name:"Affondi alternati con manubri", sets:3, reps:10, note2:"per lato", rest:40},
+    {name:"Stacco rumeno con manubri", sets:3, reps:10, rest:40},
+    {name:"Ponte glutei", sets:3, time:20, rest:30},
+  ]},
+  core: {title:"Core & Cardio breve", type:"workout", ex:[
+    {name:"Riscaldamento", meta:"2 min", time:120, note:true},
+    {name:"Mountain climber", sets:3, time:20, rest:30},
+    {name:"Jumping jack", sets:3, time:30, rest:20},
+    {name:"Plank", sets:3, time:30, rest:30},
+    {name:"Russian twist con manubrio", sets:3, reps:16, rest:30},
+  ]},
+  pull: {title:"Trazione — Schiena · Spalle posteriori", type:"workout", ex:[
+    {name:"Riscaldamento", meta:"2 min", time:120, note:true},
+    {name:"Rematore con manubri", sets:3, reps:10, rest:45},
+    {name:"Alzate laterali", sets:3, reps:12, rest:40},
+    {name:"Superman", sets:3, reps:12, rest:30},
+    {name:"Plank", sets:2, time:30, rest:30},
+  ]},
+  full: {title:"Full Body Circuit", type:"workout", ex:[
+    {name:"Riscaldamento", meta:"2 min", time:120, note:true},
+    {name:"Squat + press con manubri", sets:3, reps:10, rest:40},
+    {name:"Flessioni sugli appoggi", sets:3, reps:8, rest:40},
+    {name:"Affondi alternati", sets:3, reps:10, note2:"per lato", rest:40},
+    {name:"Plank", sets:2, time:30, rest:30},
+  ]},
+  mobility: {title:"Mobilità articolare (recupero attivo)", type:"recovery", ex:[
+    {name:"Cat-cow", sets:2, time:30, rest:15},
+    {name:"Rotazioni anche e spalle", sets:2, time:30, rest:15},
+    {name:"Affondo con rotazione", sets:2, reps:8, note2:"per lato", rest:20},
+    {name:"Stretching flessori dell'anca", sets:2, time:30, note2:"per lato", rest:15},
+  ]},
+  stretch: {title:"Stretching totale + respirazione", type:"recovery", ex:[
+    {name:"Stretching quadricipiti", sets:2, time:30, note2:"per lato", rest:10},
+    {name:"Stretching femorali", sets:2, time:30, note2:"per lato", rest:10},
+    {name:"Stretching pettorali e spalle", sets:2, time:30, rest:10},
+    {name:"Respirazione diaframmatica", sets:1, time:120, rest:0},
+  ]},
+};
+
+const WEEK_PLAN = ["push","legs","core","pull","full","mobility","stretch"]; // lun..dom
+const DAY_LABELS = ["LUN","MAR","MER","GIO","VEN","SAB","DOM"];
+
+// Moltiplicatori di progressione per settimana (solo su esercizi "workout" con reps/sets/time, non sulle note)
+const WEEK_MOD = {
+  1: {reps:0, sets:0, time:0, label:"Settimana 1 · Base — impara il movimento"},
+  2: {reps:2, sets:0, time:5, label:"Settimana 2 · +ripetizioni"},
+  3: {reps:2, sets:1, time:5, label:"Settimana 3 · +un set, riposi più corti"},
+  4: {reps:-2, sets:0, time:-5, label:"Settimana 4 · Scarico — cura la tecnica"},
+};
+
+function adjustExercise(ex, week){
+  if(ex.note || DAY_TEMPLATES_isRecovery) {} // placeholder, gestito sotto
+  const mod = WEEK_MOD[week];
+  const copy = {...ex};
+  if(!ex.note){
+    if(copy.reps!=null) copy.reps = Math.max(4, copy.reps + mod.reps);
+    if(copy.sets!=null) copy.sets = Math.max(1, copy.sets + (week===3?mod.sets:0));
+    if(copy.time!=null) copy.time = Math.max(10, copy.time + mod.time);
+    if(week===3 && copy.rest!=null) copy.rest = Math.max(15, copy.rest - 10);
+  }
+  return copy;
+}
+
+/* ================= STATO ================= */
+const state = {
+  week: Number(localStorage.getItem('ma_week')||1),
+  selectedDay: new Date().getDay(), // 0=dom..6=sab -> convertiamo
+  progress: JSON.parse(localStorage.getItem('ma_progress')||'{}'),
+  running:false, startTs:0, timerInt:null,
+  exState:{}, // per giorno corrente: {index: {doneSets:n}}
+};
+function todayIndex(){ const d=new Date().getDay(); return d===0?6:d-1; } // lun=0..dom=6
+if(state.selectedDay===undefined) state.selectedDay = todayIndex();
+state.selectedDay = todayIndex();
+
+function dateKey(week, dayIdx){
+  // chiave semplice basata su settimana ciclica + giorno + data reale, per lo storico
+  const d = new Date(); return d.toISOString().slice(0,10)+"_w"+week+"_d"+dayIdx;
+}
+
+/* ================= RENDER ================= */
+const weekTabs = document.getElementById('weekTabs');
+const dayDial = document.getElementById('dayDial');
+const cardHost = document.getElementById('cardHost');
+
+function renderWeekTabs(){
+  weekTabs.innerHTML = '';
+  for(let w=1; w<=4; w++){
+    const b = document.createElement('button');
+    b.className = 'week-tab'+(w===state.week?' active':'');
+    b.textContent = 'Sett. '+w;
+    b.onclick = ()=>{ state.week=w; localStorage.setItem('ma_week',w); renderAll(); };
+    weekTabs.appendChild(b);
+  }
+}
+
+function isDone(week, dayIdx){
+  const k = 'done_w'+week+'_d'+dayIdx;
+  return !!state.progress[k];
+}
+function markDone(week, dayIdx, val){
+  const k = 'done_w'+week+'_d'+dayIdx;
+  state.progress[k]=val;
+  localStorage.setItem('ma_progress', JSON.stringify(state.progress));
+}
+
+function renderDayDial(){
+  dayDial.innerHTML='';
+  const tIdx = todayIndex();
+  WEEK_PLAN.forEach((tpl,i)=>{
+    const type = DAY_TEMPLATES[tpl].type;
+    const btn = document.createElement('button');
+    btn.className = 'day-btn '+type+(i===tIdx?' today':'')+(i===state.selectedDay?' selected':'')+(isDone(state.week,i)?' done':'');
+    btn.innerHTML = `<div class="dot">${isDone(state.week,i)?'✓':(i+1)}</div><small>${DAY_LABELS[i]}</small>`;
+    btn.onclick = ()=>{ state.selectedDay=i; renderAll(); };
+    dayDial.appendChild(btn);
+  });
+}
+
+function computeStreak(){
+  let streak=0;
+  for(let i=0;i<200;i++){
+    // cammina indietro giorno per giorno reale non è tracciato per data assoluta in questo modello semplice a settimane cicliche;
+    // usiamo un contatore semplice di giorni completati totali consecutivi nell'ordine settimana/giorno corrente
+  }
+  // versione semplice: conta tutte le entry "true" in progress
+  return Object.values(state.progress).filter(Boolean).length;
+}
+
+let currentExAdjusted = [];
+
+function renderCard(){
+  const tpl = DAY_TEMPLATES[WEEK_PLAN[state.selectedDay]];
+  const done = isDone(state.week, state.selectedDay);
+  currentExAdjusted = tpl.ex.map(e=>adjustExercise(e, state.week));
+
+  const exHtml = currentExAdjusted.map((e,i)=>{
+    const meta = e.note ? e.meta :
+      (e.reps!=null ? `${e.sets} x ${e.reps}${e.note2?' '+e.note2:''} · rec ${e.rest}s` : `${e.sets} x ${e.time}s${e.note2?' '+e.note2:''} · rec ${e.rest}s`);
+    const key = 'ex_'+state.week+'_'+state.selectedDay+'_'+i;
+    const checked = state.exState[key];
+    return `<div class="ex ${checked?'done':''}">
+      <div class="check ${checked?'on':''}" data-exkey="${key}">${checked?'✓':''}</div>
+      <div class="ex-body">
+        <div class="ex-name">${e.name}</div>
+        <div class="ex-meta">${meta}</div>
+      </div>
+      ${!e.note ? `<button class="ex-timer-btn" data-timeridx="${i}">⏱</button>` : ''}
+    </div>`;
+  }).join('');
+
+  cardHost.innerHTML = `
+  <div class="card ${tpl.type}">
+    <div class="wk-title">
+      <h2>${tpl.title}</h2>
+      <span class="badge ${tpl.type}">${tpl.type==='workout'?'Allenamento':'Recupero'}</span>
+    </div>
+    <p class="wk-sub">${WEEK_MOD[state.week].label}</p>
+    <div class="session-timer">
+      <div class="num" id="sessTimer">00:00</div>
+      <div class="lbl">durata sessione</div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-start" id="btnStart" ${state.running?'disabled':''}>${done?'Rifai':'Inizia'}</button>
+      <button class="btn btn-end" id="btnEnd" ${!state.running?'disabled':''}>Fine</button>
+    </div>
+    <div class="ex-list">${exHtml}</div>
+  </div>`;
+
+  document.getElementById('btnStart').onclick = startSession;
+  document.getElementById('btnEnd').onclick = endSession;
+  cardHost.querySelectorAll('[data-exkey]').forEach(el=>{
+    el.onclick = ()=>{
+      const k = el.dataset.exkey;
+      state.exState[k] = !state.exState[k];
+      renderCard();
+    };
+  });
+  cardHost.querySelectorAll('[data-timeridx]').forEach(el=>{
+    el.onclick = ()=> openTimer(Number(el.dataset.timeridx));
+  });
+}
+
+function renderAll(){
+  renderWeekTabs();
+  renderDayDial();
+  renderCard();
+  document.getElementById('streakNum').textContent = computeStreak();
+}
+
+/* ================= SESSIONE (cronometro) ================= */
+function startSession(){
+  state.running = true; state.startTs = Date.now();
+  state.timerInt = setInterval(()=>{
+    const s = Math.floor((Date.now()-state.startTs)/1000);
+    const mm = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    const elTimer = document.getElementById('sessTimer');
+    if(elTimer) elTimer.textContent = mm+':'+ss;
+  },1000);
+  renderCard();
+}
+function endSession(){
+  state.running=false;
+  clearInterval(state.timerInt);
+  markDone(state.week, state.selectedDay, true);
+  renderAll();
+}
+
+/* ================= TIMER PER ESERCIZIO + METRONOMO ================= */
+const overlay = document.getElementById('overlay');
+const ringFg = document.getElementById('ringFg');
+const ringNum = document.getElementById('ringNum');
+const CIRC = 2*Math.PI*96;
+ringFg.setAttribute('stroke-dasharray', CIRC);
+
+let ovInterval=null, metroInterval=null, audioCtx=null;
+function beep(){
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.frequency.value=880; o.type='sine';
+  g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+0.08);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(); o.stop(audioCtx.currentTime+0.08);
+}
+
+function openTimer(idx){
+  const e = currentExAdjusted[idx];
+  const dur = e.time || 30;
+  document.getElementById('ovName').textContent = e.name;
+  document.getElementById('ovMeta').textContent = e.reps!=null? `${e.sets} x ${e.reps}` : `${e.sets} x ${e.time}s`;
+  let remaining = dur;
+  ringNum.textContent = remaining;
+  ringFg.style.strokeDashoffset = 0;
+  overlay.classList.add('show');
+
+  const bpmSelect = document.getElementById('bpmSelect');
+  bpmSelect.value = localStorage.getItem('ma_bpm')||'80';
+
+  document.getElementById('ovStart').onclick = ()=>{
+    if(ovInterval) return;
+    document.getElementById('ovStart').textContent='In corso…';
+    const bpm = Number(bpmSelect.value);
+    if(bpm>0){
+      const dot = document.getElementById('metroDot');
+      metroInterval = setInterval(()=>{ beep(); dot.classList.add('on'); setTimeout(()=>dot.classList.remove('on'),100); }, 60000/bpm);
+    }
+    ovInterval = setInterval(()=>{
+      remaining--;
+      ringNum.textContent = remaining;
+      ringFg.style.strokeDashoffset = CIRC*(1-remaining/dur);
+      if(remaining<=0){
+        clearInterval(ovInterval); ovInterval=null;
+        clearInterval(metroInterval); metroInterval=null;
+        beep();
+        document.getElementById('ovStart').textContent='Avvia';
+      }
+    },1000);
+  };
+  bpmSelect.onchange = ()=> localStorage.setItem('ma_bpm', bpmSelect.value);
+}
+document.getElementById('ovClose').onclick = ()=>{
+  overlay.classList.remove('show');
+  clearInterval(ovInterval); ovInterval=null;
+  clearInterval(metroInterval); metroInterval=null;
+  document.getElementById('ovStart').textContent='Avvia';
+};
+
+/* ================= IMPOSTAZIONI ================= */
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+settingsToggle.onclick = ()=>{
+  settingsPanel.classList.toggle('open');
+  document.getElementById('settingsArrow').textContent = settingsPanel.classList.contains('open')?'▴':'▾';
+};
+
+const notifSwitch = document.getElementById('notifSwitch');
+notifSwitch.classList.toggle('on', localStorage.getItem('ma_notif')==='1');
+notifSwitch.onclick = async ()=>{
+  if(!notifSwitch.classList.contains('on')){
+    const perm = await Notification.requestPermission();
+    if(perm==='granted'){ notifSwitch.classList.add('on'); localStorage.setItem('ma_notif','1'); }
+  } else {
+    notifSwitch.classList.remove('on'); localStorage.setItem('ma_notif','0');
+  }
+};
+
+const spotifyLink = document.getElementById('spotifyLink');
+spotifyLink.value = localStorage.getItem('ma_spotify')||'';
+spotifyLink.oninput = ()=> localStorage.setItem('ma_spotify', spotifyLink.value);
+document.getElementById('spotifyBtn').onclick = ()=>{
+  const url = spotifyLink.value.trim();
+  if(!url){ alert('Incolla prima il link della tua playlist Spotify.'); return; }
+  window.open(url.replace('https://open.spotify.com/','spotify:').replace('/','_TMP_').split('_TMP_').join(':') , '_blank');
+};
+
+const bpmDefault = document.getElementById('bpmDefault');
+bpmDefault.value = localStorage.getItem('ma_bpm')||'80';
+bpmDefault.oninput = ()=> localStorage.setItem('ma_bpm', bpmDefault.value);
+
+/* ================= NOTIFICHE (mentre l'app è aperta) ================= */
+setInterval(()=>{
+  if(localStorage.getItem('ma_notif')!=='1') return;
+  if(Notification.permission!=='granted') return;
+  const now = new Date();
+  const isWeekend = now.getDay()===0 || now.getDay()===6;
+  const targetH = isWeekend?11:19, targetM=0;
+  const todayStr = now.toISOString().slice(0,10);
+  const lastNotif = localStorage.getItem('ma_lastnotif');
+  if(now.getHours()===targetH && now.getMinutes()===targetM && lastNotif!==todayStr){
+    const dIdx = todayIndex();
+    const tpl = DAY_TEMPLATES[WEEK_PLAN[dIdx]];
+    new Notification('MyAllenamento', {body:`È ora di allenarti: ${tpl.title} (max 15 min)`});
+    localStorage.setItem('ma_lastnotif', todayStr);
+  }
+},20000);
+
+/* ================= SERVICE WORKER ================= */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+
+renderAll();
+</script>
+</body>
+</html>
