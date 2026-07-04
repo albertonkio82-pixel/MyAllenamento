@@ -334,6 +334,7 @@ function renderCard(){
         <div class="ex-name">${e.name}</div>
         <div class="ex-meta">${meta}</div>
       </div>
+      <button class="ex-timer-btn" data-guideidx="${i}" title="Come si esegue">?</button>
       ${!e.note ? `<button class="ex-timer-btn" data-timeridx="${i}">⏱</button>` : ''}
     </div>`;
   }).join('');
@@ -367,6 +368,13 @@ function renderCard(){
   });
   cardHost.querySelectorAll('[data-timeridx]').forEach(el=>{
     el.onclick = ()=> openTimer(Number(el.dataset.timeridx));
+  });
+  cardHost.querySelectorAll('[data-guideidx]').forEach(el=>{
+    el.onclick = ()=>{
+      const e = currentExAdjusted[Number(el.dataset.guideidx)];
+      const q = encodeURIComponent(e.name + ' esecuzione corretta manubri');
+      window.open('https://www.google.com/search?tbm=isch&q='+q, '_blank');
+    };
   });
 }
 
